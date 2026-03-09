@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; color: #333; }
+        header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+        h1 { margin: 0; font-size: 2em; }
+        .company-info { background: #f9f9f9; padding: 20px; margin-bottom: 30px; border-radius: 5px; }
+        .company-info h2 { margin-top: 0; }
+        section { margin-bottom: 30px; }
+        section h2 { border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        ul { list-style-type: disc; padding-left: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table th, table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        table th { background-color: #f2f2f2; }
+        footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>{{ title }}</h1>
+    </header>
+    <div class="company-info">
+        <h2>Company Information</h2>
+        <p><strong>Company Name:</strong> {{ company_name }}</p>
+        <p><strong>Ticker:</strong> {{ ticker }}</p>
+        {% if sector %}
+        <p><strong>Sector:</strong> {{ sector }}</p>
+        {% endif %}
+        {% if analyst_name %}
+        <p><strong>Analyst:</strong> {{ analyst_name }}</p>
+        {% endif %}
+    </div>
+    <section>
+        <h2>Executive Summary</h2>
+        <p>{{ summary }}</p>
+    </section>
+    <section>
+        <h2>Key Points</h2>
+        <ul>
+            {% for point in key_points %}
+            <li>{{ point }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section>
+        <h2>Risks</h2>
+        <ul>
+            {% for risk in risks %}
+            <li>{{ risk }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section>
+        <h2>Recommendation</h2>
+        <p>{{ recommendation }}</p>
+    </section>
+    {% if metrics %}
+    <section>
+        <h2>Metrics</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for metric in metrics %}
+                <tr>
+                    <td>{{ metric.label }}</td>
+                    <td>{{ metric.value }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+    {% endif %}
+    <footer>
+        <p>Generated on {{ generated_at }}</p>
+    </footer>
+</body>
+</html>
