@@ -1,13 +1,18 @@
-from sqlalchemy import Column, String, Text, Boolean, TIMESTAMP, ForeignKey, Integer, UniqueConstraint, Index
-from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import Enum
+from sqlalchemy import Column, String, Text, Boolean, DateTime, ForeignKey, Integer, UniqueConstraint, Index
+from sqlalchemy.orm import relationship
 from app.database import Base
-import uuid
-from datetime import datetime
+from uuid import uuid4
+from datetime import datetime, timezone
+
+
+def _uuid():
+    return uuid4().hex
+
 
 class Briefing(Base):
     __tablename__ = "briefings"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+
+    id = Column(String(32), primary_key=True, default=_uuid)
     company_name = Column(String, nullable=False)
     ticker = Column(String, nullable=False)
     sector = Column(String)
@@ -15,25 +20,40 @@ class Briefing(Base):
     summary = Column(Text, nullable=False)
     recommendation = Column(Text, nullable=False)
     is_generated = Column(Boolean, default=False)
-    generated_at = Column(TIMESTAMP)
-    html_content = Column(Text)
-    created_at = Column(TIMESTAMP, default=datetime.utcnow)
+    generated_at = Column(DateTime, nullable=True)
+    html_content = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    points = relationship("BriefingPoint", back_populates="briefing", cascade="all, delete-orphan")
+    metrics = relationship("BriefingMetric", back_populates="briefing", cascade="all, delete-orphan")
+
 
 class BriefingPoint(Base):
     __tablename__ = "briefing_points"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    briefing_id = Column(UUID(as_uuid=True), ForeignKey("briefings.id", ondelete="CASCADE"), nullable=False)
-    type = Column(Enum('key_point', 'risk', name='briefing_point_type'), nullable=False)
+
+    id = Column(String(32), primary_key=True, default=_uuid)
+    briefing_id = Column(String(32), ForeignKey("briefings.id", ondelete="CASCADE"), nullable=False)
+    type = Column(String, nullable=False)
     content = Column(Text, nullable=False)
-    display_order = Column(Integer, nullable=False)
+    display_order = Column(Integer, nullable=False, default=0)
+
+    briefing = relationship("Briefing", back_populates="points")
+
 
 class BriefingMetric(Base):
     __tablename__ = "briefing_metrics"
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    briefing_id = Column(UUID(as_uuid=True), ForeignKey("briefings.id", ondelete="CASCADE"), nullable=False)
+
+    id = Column(String(32), primary_key=True, default=_uuid)
+    briefing_id = Column(String(32), ForeignKey("briefings.id", ondelete="CASCADE"), nullable=False)
     name = Column(String, nullable=False)
     value = Column(String, nullable=False)
 
+    briefing = relationship("Briefing", back_populates="metrics")
+
+    __table_args__ = (
+        UniqueConstraint("briefing_id", "name", name="uq_briefing_metric_name"),
+    )
+
+
 Index("ix_briefing_points_briefing_id", BriefingPoint.briefing_id)
 Index("ix_briefing_metrics_briefing_id", BriefingMetric.briefing_id)
-UniqueConstraint(BriefingMetric.briefing_id, BriefingMetric.name, name="uq_briefing_metric_name")
